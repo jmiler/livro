@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Chave do Apartamento 302 - Livro Interativo</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --accent: #7c4dff;
+            --hover-accent: #651fff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .container {
+            background-color: var(--bg-secondary);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            margin-top: 2rem;
+        }
+
+        h1, h2 {
+            color: var(--accent);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .chapter {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .chapter.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .text-content {
+            margin-bottom: 1.5rem;
+        }
+
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .choice-btn {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            border: 2px solid var(--accent);
+            padding: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .choice-btn:hover {
+            background-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .icon {
+            font-size: 1.2rem;
+            color: var(--accent);
+        }
+
+        .choice-btn:hover .icon {
+            color: var(--text-primary);
+        }
+
+        .typing {
+            border-right: 2px solid var(--accent);
+            white-space: pre-wrap;
+            overflow: hidden;
+            width: 0;
+            animation: typing 3s steps(40, end) forwards;
+        }
+
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .choice-btn {
+                font-size: 0.9rem;
+                padding: 0.8rem;
+            }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background-color: var(--bg-primary);
+            margin: 1rem 0;
+            border-radius: 2px;
+        }
+
+        .progress {
+            height: 100%;
+            background-color: var(--accent);
+            width: 0;
+            transition: width 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+
+        .stats {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .restart-btn {
+            background-color: var(--accent);
+            color: var(--text-primary);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            display: none;
+        }
+
+        .restart-btn.visible {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="stats">
+                <i class="fas fa-book-open"></i> Capítulo: <span id="chapter-counter">1</span>/3
+            </div>
+            <button class="restart-btn" id="restart-btn">
+                <i class="fas fa-redo"></i> Recomeçar
+            </button>
+        </div>
+        <div class="progress-bar">
+            <div class="progress" id="progress"></div>
+        </div>
+        <div id="story-container"></div>
+    </div>
+
+    <script>
+        const story = {
+    start: {
+        title: "A Chave do Apartamento 302",
+        text: "Em uma noite chuvosa de outono, Maria encontra uma chave misteriosa em seu capacho. Junto dela, um bilhete escrito à mão diz: 'A verdade está no 302. Você tem até meia-noite.' O detalhe mais intrigante? Maria mora no apartamento 301, e nunca teve contato com seu vizinho do 302, um apartamento que sempre pareceu vazio.",
+        choices: [
+            { text: "Usar a chave e entrar no apartamento 302", icon: "fa-key", next: "enter_apartment" },
+            { text: "Chamar a polícia", icon: "fa-phone", next: "call_police" }
+        ]
+    },
+    // Caminho A: Entrar no apartamento
+    enter_apartment: {
+        title: "Capítulo 1: A Decisão",
+        text: "Ao girar a chave, a porta range suavemente. O apartamento está às escuras, mas sua lanterna do celular revela uma sala impecavelmente organizada, exceto por dezenas de fotos espalhadas nas paredes. Algumas delas mostram... ela mesma, em sua rotina diária.",
+        choices: [
+            { text: "Continuar explorando o apartamento", icon: "fa-search", next: "explore_further" },
+            { text: "Sair imediatamente", icon: "fa-door-open", next: "leave_immediately" }
+        ]
+    },
+    explore_further: {
+        title: "Capítulo 2: Revelações",
+        text: "No quarto principal, Maria encontra um laptop ligado. Na tela, um arquivo aberto intitulado 'Projeto Vigília' revela que ela é parte de um experimento social secreto. Há câmeras escondidas por todo seu apartamento.",
+        choices: [
+            { text: "Copiar os arquivos para o celular", icon: "fa-copy", next: "copy_files" },
+            { text: "Procurar e desativar as câmeras", icon: "fa-camera", next: "disable_cameras" }
+        ]
+    },
+    leave_immediately: {
+        title: "Capítulo 2: Mensagem Ameaçadora",
+        text: "De volta ao seu apartamento, Maria recebe uma mensagem: 'Você não deveria ter saído tão cedo. Agora temos que acelerar o processo.'",
+        choices: [
+            { text: "Fazer as malas e fugir", icon: "fa-suitcase", next: "escape_building" },
+            { text: "Confrontar o remetente", icon: "fa-comment", next: "confront_sender" }
+        ]
+    },
+
+    // Caminho B: Chamar a polícia
+    call_police: {
+        title: "Capítulo 1: Intervenção Policial",
+        text: "A polícia chega em 15 minutos. Enquanto explica a situação, Maria nota um homem observando da escada de emergência. Ele foge ao perceber que foi visto.",
+        choices: [
+            { text: "Contar aos policiais sobre o homem", icon: "fa-user-shield", next: "tell_police" },
+            { text: "Investigar por conta própria", icon: "fa-user-secret", next: "investigate_alone" }
+        ]
+    },
+    tell_police: {
+        title: "Capítulo 2: Descobertas Policiais",
+        text: "Os policiais revistam o prédio e encontram equipamentos de vigilância no porão, junto com evidências de uma organização chamada 'Observadores'.",
+        choices: [
+            { text: "Aceitar proteção policial", icon: "fa-shield-alt", next: "police_protection" },
+            { text: "Conduzir investigação paralela", icon: "fa-search", next: "parallel_investigation" }
+        ]
+    },
+    investigate_alone: {
+        title: "Capítulo 2: Padrão Sinistro",
+        text: "Maria segue pistas deixadas pelo homem misterioso e descobre um padrão de desaparecimentos no prédio, todos conectados ao apartamento 302.",
+        choices: [
+            { text: "Reunir moradores para investigar", icon: "fa-users", next: "gather_neighbors" },
+            { text: "Montar uma armadilha", icon: "fa-trap", next: "set_trap" }
+        ]
+    },
+
+    // Finais
+    copy_files: {
+        title: "Capítulo 3: A Exposição",
+        text: "Maria consegue expor o experimento ilegal. A organização é desmantelada, e ela descobre que era parte de um estudo sobre comportamento humano sob vigilância. Ela se torna uma ativista pela privacidade digital.",
+        choices: [
+            { text: "Recomeçar a história", icon: "fa-redo", next: "start" }
+        ]
+    },
+    escape_building: {
+        title: "Capítulo 3: A Fuga",
+        text: "Maria escapa por pouco de se tornar a próxima vítima de um culto obsessivo que usava o prédio como base de operações. Sua fuga leva à prisão dos responsáveis, mas as verdadeiras motivações permanecem um mistério.",
+        choices: [
+            { text: "Recomeçar a história", icon: "fa-redo", next: "start" }
+        ]
+    },
+    parallel_investigation: {
+        title: "Capítulo 3: A Rede Descoberta",
+        text: "Trabalhando com outros moradores e um detetive aposentado, Maria descobre que o apartamento 302 é na verdade uma central de uma rede de tráfico de informações pessoais. Sua investigação leva à maior apreensão de dados roubados da história da cidade.",
+        choices: [
+            { text: "Recomeçar a história", icon: "fa-redo", next: "start" }
+        ]
+    },
+    disable_cameras: {
+        title: "Capítulo 3: O Experimento Governamental",
+        text: "Maria cai em uma armadilha e descobre que é parte de um experimento governamental secreto. No entanto, ela consegue virar o jogo usando as próprias ferramentas de vigilância contra os observadores, expondo um esquema de corrupção que vai muito além do apartamento 302.",
+        choices: [
+            { text: "Recomeçar a história", icon: "fa-redo", next: "start" }
+        ]
+    },
+    police_protection: {
+        title: "Capítulo 3: Proteção e Descobertas",
+        text: "Sob proteção policial, Maria ajuda a desvendar uma conspiração maior envolvendo experimentos sociais ilegais. Sua coragem em denunciar leva ao desmantelamento de uma organização criminosa internacional.",
+        choices: [
+            { text: "Recomeçar a história", icon: "fa-redo", next: "start" }
+        ]
+    },
+    gather_neighbors: {
+        title: "Capítulo 3: União dos Moradores",
+        text: "A união dos moradores revela uma rede de vigilância que se estendia por todo o prédio. Juntos, eles conseguem expor os criminosos e transformar a tragédia em um movimento de conscientização sobre privacidade.",
+        choices: [
+            { text: "Recomeçar a história", icon: "fa-redo", next: "start" }
+        ]
+    },
+    set_trap: {
+        title: "Capítulo 3: A Armadilha",
+        text: "A armadilha de Maria funciona, mas revela uma verdade ainda mais perturbadora sobre experimentos governamentais secretos. Ela usa as evidências para negociar sua segurança e a de outros moradores.",
+        choices: [
+            { text: "Recomeçar a história", icon: "fa-redo", next: "start" }
+        ]
+    },
+    confront_sender: {
+        title: "Capítulo 3: O Confronto",
+        text: "O confronto leva Maria a descobrir que é parte de um elaborado experimento social. Sua coragem em enfrentar os responsáveis inspira outros participantes a se manifestarem, expondo uma rede global de vigilância ilegal.",
+        choices: [
+            { text: "Recomeçar a história", icon: "fa-redo", next: "start" }
+        ]
+    }
+};
+
+
+        let currentScene = 'start';
+        let progress = 0;
+
+        function updateProgress() {
+            progress += 33.33;
+            document.getElementById('progress').style.width = `${Math.min(progress, 100)}%`;
+        }
+
+        function typeText(element, text, callback) {
+            element.textContent = '';
+            let i = 0;
+            const speed = 30;
+
+            function type() {
+                if (i < text.length) {
+                    element.textContent += text.charAt(i);
+                    i++;
+                    setTimeout(type, speed);
+                } else if (callback) {
+                    callback();
+                }
+            }
+
+            type();
+        }
+
+        function showScene(sceneId) {
+            const scene = story[sceneId];
+            const container = document.getElementById('story-container');
+            container.innerHTML = '';
+
+            const titleEl = document.createElement('h2');
+            const textEl = document.createElement('div');
+            textEl.className = 'text-content';
+            const choicesEl = document.createElement('div');
+            choicesEl.className = 'choices';
+
+            container.appendChild(titleEl);
+            container.appendChild(textEl);
+            container.appendChild(choicesEl);
+
+            typeText(titleEl, scene.title, () => {
+                typeText(textEl, scene.text, () => {
+                    scene.choices.forEach(choice => {
+                        const button = document.createElement('button');
+                        button.className = 'choice-btn';
+                        button.innerHTML = `<i class="fas ${choice.icon} icon"></i> ${choice.text}`;
+                        button.onclick = () => {
+                            updateProgress();
+                            showScene(choice.next);
+                        };
+                        choicesEl.appendChild(button);
+                    });
+                });
+            });
+        }
+
+        document.getElementById('restart-btn').addEventListener('click', () => {
+            progress = 0;
+            document.getElementById('progress').style.width = '0%';
+            showScene('start');
+        });
+
+        // Iniciar a história
+        showScene('start');
+    </script>
+</body>
+</html>
